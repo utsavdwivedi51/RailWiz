@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RailWiz · AI Railway Assistant</title>
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    body {
+      background-color: #f9fafc;
+      color: #1e293b;
+      transition: background-color 0.3s, color 0.3s;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+
+    /* Dark mode styles */
+    body.dark-mode {
+      background-color: #0f172a;
+      color: #e2e8f0;
+    }
+    body.dark-mode .card,
+    body.dark-mode .chat-box,
+    body.dark-mode .chat-panel {
+      background-color: #1e293b;
+      border-color: #334155;
+    }
+    body.dark-mode .btn-outline {
+      border-color: #475569;
+      color: #e2e8f0;
+    }
+    body.dark-mode .input {
+      background-color: #334155;
+      border-color: #475569;
+      color: white;
+    }
+
+    .app-container {
+      max-width: 1300px;
+      width: 100%;
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+    .logo h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .logo span {
+      font-size: 1rem;
+      background: none;
+      -webkit-text-fill-color: #f59e0b;
+      font-weight: 500;
+      margin-left: 4px;
+    }
+    .dark-mode-toggle {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: #1e3a8a;
+    }
+    body.dark-mode .dark-mode-toggle {
+      color: #f59e0b;
+    }
+
+    /* Greeting card */
+    .greeting {
+      background: linear-gradient(145deg, #1e3a8a, #2563eb);
+      color: white;
+      padding: 1.5rem 2rem;
+      border-radius: 2rem;
+      margin-bottom: 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      box-shadow: 0 10px 25px rgba(30, 58, 138, 0.3);
+    }
+    .greeting h2 {
+      font-size: 1.8rem;
+      font-weight: 600;
+    }
+    .greeting p {
+      font-size: 1.1rem;
+      opacity: 0.9;
+    }
+    .next-trip {
+      background: rgba(255,255,255,0.2);
+      padding: 0.8rem 1.5rem;
+      border-radius: 3rem;
+      backdrop-filter: blur(5px);
+      font-weight: 500;
+    }
+
+    /* Quick actions */
+    .quick-actions {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 2.5rem;
+    }
+    .action-btn {
+      background: white;
+      border: none;
+      padding: 0.8rem 1.8rem;
+      border-radius: 3rem;
+      font-weight: 600;
+      font-size: 1rem;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      cursor: pointer;
+      transition: 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #1e293b;
+    }
+    .action-btn i {
+      color: #f59e0b;
+      font-size: 1.2rem;
+    }
+    .action-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 15px rgba(0,0,0,0.1);
+    }
+    body.dark-mode .action-btn {
+      background: #1e293b;
+      color: #e2e8f0;
+    }
+
+    /* Main cards grid */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.8rem;
+      margin-bottom: 3rem;
+    }
+    .card {
+      background: white;
+      border-radius: 2rem;
+      padding: 1.8rem;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.03);
+      border: 1px solid rgba(0,0,0,0.03);
+      transition: 0.2s;
+    }
+    .card:hover {
+      box-shadow: 0 20px 30px rgba(0,0,0,0.05);
+    }
+    .card-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-title i {
+      color: #f59e0b;
+    }
+
+    /* Forms */
+    .input-group {
+      margin-bottom: 1rem;
+    }
+    .input {
+      width: 100%;
+      padding: 0.9rem 1.2rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 2rem;
+      font-size: 1rem;
+      outline: none;
+      transition: 0.2s;
+    }
+    .input:focus {
+      border-color: #f59e0b;
+      box-shadow: 0 0 0 3px rgba(245,158,11,0.2);
+    }
+    .btn {
+      background: #f59e0b;
+      border: none;
+      padding: 0.9rem 2rem;
+      border-radius: 3rem;
+      font-weight: 600;
+      font-size: 1rem;
+      cursor: pointer;
+      width: 100%;
+      color: #1e293b;
+      transition: 0.2s;
+    }
+    .btn:hover {
+      background: #d97706;
+    }
+
+    /* Results area */
+    .result-area {
+      margin-top: 1.5rem;
+      border-top: 1px solid #e2e8f0;
+      padding-top: 1.2rem;
+      min-height: 80px;
+    }
+    .train-item {
+      background: #f8fafc;
+      padding: 0.8rem 1rem;
+      border-radius: 1.5rem;
+      margin-bottom: 0.8rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    body.dark-mode .train-item {
+      background: #0f172a;
+    }
+    .ai-tag {
+      background: #f59e0b;
+      color: #1e293b;
+      padding: 0.2rem 1rem;
+      border-radius: 2rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    /* Chat bubble & panel */
+    .chat-bubble {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background: #f59e0b;
+      width: 65px;
+      height: 65px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      color: white;
+      cursor: pointer;
+      box-shadow: 0 10px 20px rgba(245,158,11,0.4);
+      transition: 0.2s;
+      z-index: 100;
+    }
+    .chat-bubble:hover {
+      transform: scale(1.1);
+    }
+    .chat-panel {
+      position: fixed;
+      bottom: 6rem;
+      right: 2rem;
+      width: 350px;
+      height: 500px;
+      background: white;
+      border-radius: 2rem;
+      box-shadow: 0 25px 50px rgba(0,0,0,0.2);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      z-index: 99;
+      transition: 0.3s ease;
+      border: 1px solid #e2e8f0;
+    }
+    .chat-panel.closed {
+      transform: translateY(20px);
+      opacity: 0;
+      pointer-events: none;
+    }
+    .chat-header {
+      background: #1e3a8a;
+      color: white;
+      padding: 1.2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .chat-header h3 {
+      font-weight: 600;
+    }
+    .chat-header i {
+      cursor: pointer;
+    }
+    .chat-messages {
+      flex: 1;
+      padding: 1.2rem;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+    }
+    .message {
+      max-width: 80%;
+      padding: 0.8rem 1.2rem;
+      border-radius: 1.5rem;
+      font-size: 0.95rem;
+    }
+    .user-message {
+      background: #f59e0b;
+      color: #1e293b;
+      align-self: flex-end;
+      border-bottom-right-radius: 4px;
+    }
+    .riya-message {
+      background: #e2e8f0;
+      color: #1e293b;
+      align-self: flex-start;
+      border-bottom-left-radius: 4px;
+    }
+    body.dark-mode .riya-message {
+      background: #334155;
+      color: #e2e8f0;
+    }
+    .chat-input-area {
+      display: flex;
+      padding: 1rem;
+      border-top: 1px solid #e2e8f0;
+    }
+    .chat-input-area input {
+      flex: 1;
+      padding: 0.8rem 1.2rem;
+      border: 1px solid #e2e8f0;
+      border-radius: 2rem;
+      outline: none;
+      margin-right: 0.5rem;
+    }
+    .chat-input-area button {
+      background: #f59e0b;
+      border: none;
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      color: white;
+      font-size: 1.2rem;
+      cursor: pointer;
+    }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      margin-top: 3rem;
+      font-size: 0.9rem;
+      color: #64748b;
+    }
+
+    /* micro-interactions */
+    .train-item i {
+      color: #f59e0b;
+      margin-right: 6px;
+    }
+  </style>
+</head>
+<body>
+<div class="app-container">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="logo">
+      <h1>RailWiz <span>⚡ with AI</span></h1>
+    </div>
+    <button class="dark-mode-toggle" id="darkModeToggle"><i class="fas fa-moon"></i></button>
+  </div>
+
+  <!-- Greeting card (personalised) -->
+  <div class="greeting">
+    <div>
+      <h2>Good morning, Ramesh! 👋</h2>
+      <p>Your next trip to Delhi is in 3 days. Need to book a cab?</p>
+    </div>
+    <div class="next-trip">
+      <i class="fas fa-train"></i> NDLS · 3 Mar, 8:15 PM
+    </div>
+  </div>
+
+  <!-- Quick actions -->
+  <div class="quick-actions">
+    <button class="action-btn" onclick="document.getElementById('from').focus()"><i class="fas fa-search"></i> Book Ticket</button>
+    <button class="action-btn" onclick="document.getElementById('pnrInput').focus()"><i class="fas fa-ticket-alt"></i> PNR Status</button>
+    <button class="action-btn" onclick="document.getElementById('trainInput').focus()"><i class="fas fa-map-marked-alt"></i> Live Train</button>
+    <button class="action-btn" id="openChatBtn"><i class="fas fa-comment-dots"></i> Chat with Riya</button>
+  </div>
+
+  <!-- Features Grid: Search, PNR, Live Train -->
+  <div class="features-grid">
+    <!-- Intelligent Search Card -->
+    <div class="card">
+      <div class="card-title"><i class="fas fa-route"></i> Intelligent Search</div>
+      <div class="input-group">
+        <input type="text" class="input" id="from" placeholder="From (e.g., Mumbai)" value="Mumbai">
+      </div>
+      <div class="input-group">
+        <input type="text" class="input" id="to" placeholder="To (e.g., Delhi)" value="Delhi">
+      </div>
+      <div class="input-group">
+        <input type="date" class="input" id="date" value="2026-02-20">
+      </div>
+      <button class="btn" id="searchBtn"><i class="fas fa-search"></i> Search Trains</button>
+      <div class="result-area" id="searchResults">
+        <!-- Mock results will appear here -->
+        <div class="train-item">
+          <span><i class="fas fa-train"></i> 12301 Rajdhani</span>
+          <span>16:20 → 08:35 <span class="ai-tag"><i class="fas fa-robot"></i> 95% on time</span></span>
+        </div>
+        <div class="train-item">
+          <span><i class="fas fa-train"></i> 12951 Shtabdi</span>
+          <span>06:00 → 22:10 <span class="ai-tag"><i class="fas fa-chart-line"></i> 80% confirm</span></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- PNR Status Card -->
+    <div class="card">
+      <div class="card-title"><i class="fas fa-qrcode"></i> PNR Status</div>
+      <div class="input-group">
+        <input type="text" class="input" id="pnrInput" placeholder="Enter 10-digit PNR" value="1234567890">
+      </div>
+      <button class="btn" id="pnrBtn"><i class="fas fa-sync-alt"></i> Check Status</button>
+      <div class="result-area" id="pnrResult">
+        <div class="train-item">
+          <span><i class="fas fa-check-circle" style="color:#10b981;"></i> Confirmed (S8, 42)</span>
+          <span class="ai-tag"><i class="fas fa-microchip"></i> AI: 98% confirm</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Train Tracking Card -->
+    <div class="card">
+      <div class="card-title"><i class="fas fa-map-pin"></i> Live Train</div>
+      <div class="input-group">
+        <input type="text" class="input" id="trainInput" placeholder="Train number (e.g., 12301)" value="12301">
+      </div>
+      <button class="btn" id="liveTrainBtn"><i class="fas fa-location-dot"></i> Track</button>
+      <div class="result-area" id="liveResult">
+        <div class="train-item">
+          <span><i class="fas fa-train"></i> 12301 Rajdhani</span>
+          <span>📍 50 km from Kanpur <span class="ai-tag">delay: 12 min</span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <p>RailWiz - AI-powered railway assistant. Made with ❤️ for smarter travel.</p>
+  </div>
+
+  <!-- Chat Bubble & Panel -->
+  <div class="chat-bubble" id="chatBubble">
+    <i class="fas fa-robot"></i>
+  </div>
+
+  <div class="chat-panel closed" id="chatPanel">
+    <div class="chat-header">
+      <h3><i class="fas fa-robot" style="margin-right: 8px;"></i> Riya · AI Assistant</h3>
+      <i class="fas fa-times" id="closeChat"></i>
+    </div>
+    <div class="chat-messages" id="chatMessages">
+      <div class="message riya-message">Hi Ramesh! I'm Riya, your travel assistant. How can I help you today? 😊</div>
+    </div>
+    <div class="chat-input-area">
+      <input type="text" id="chatInput" placeholder="Ask me anything..." />
+      <button id="sendChat"><i class="fas fa-paper-plane"></i></button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    // ----- DOM elements -----
+    const darkToggle = document.getElementById('darkModeToggle');
+    const body = document.body;
+    const chatBubble = document.getElementById('chatBubble');
+    const chatPanel = document.getElementById('chatPanel');
+    const closeChat = document.getElementById('closeChat');
+    const sendChat = document.getElementById('sendChat');
+    const chatInput = document.getElementById('chatInput');
+    const chatMessages = document.getElementById('chatMessages');
+    const openChatBtn = document.getElementById('openChatBtn');
+
+    // ----- Dark mode -----
+    darkToggle.addEventListener('click', () => {
+      body.classList.toggle('dark-mode');
+      darkToggle.innerHTML = body.classList.contains('dark-mode') ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+    });
+
+    // ----- Chat panel toggle -----
+    function openChat() {
+      chatPanel.classList.remove('closed');
+    }
+    function closeChatPanel() {
+      chatPanel.classList.add('closed');
+    }
+    chatBubble.addEventListener('click', openChat);
+    openChatBtn.addEventListener('click', openChat);
+    closeChat.addEventListener('click', closeChatPanel);
+
+    // ----- Chat bot logic (simple rule-based) -----
+    function addUserMessage(text) {
+      const msgDiv = document.createElement('div');
+      msgDiv.classList.add('message', 'user-message');
+      msgDiv.textContent = text;
+      chatMessages.appendChild(msgDiv);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    function addRiyaMessage(text) {
+      const msgDiv = document.createElement('div');
+      msgDiv.classList.add('message', 'riya-message');
+      msgDiv.textContent = text;
+      chatMessages.appendChild(msgDiv);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function processChat(input) {
+      const lower = input.toLowerCase();
+      if (lower.includes('book') || lower.includes('ticket')) {
+        addRiyaMessage("Sure! I can help you book. Where would you like to go? (For demo, try search card above)");
+      } else if (lower.includes('pnr') || lower.includes('status')) {
+        addRiyaMessage("Please enter your 10-digit PNR in the PNR card. I can also check for you: try typing '1234567890'.");
+      } else if (lower.includes('train') && lower.includes('live')) {
+        addRiyaMessage("You can track any train using the Live Train card. Enter number like 12301.");
+      } else if (lower.includes('hello') || lower.includes('hi')) {
+        addRiyaMessage("Hello! Ready to make your train travel smooth. Ask me anything.");
+      } else if (lower.includes('delay') || lower.includes('late')) {
+        addRiyaMessage("I predict 85% of trains are on time today. For your specific train, use the live tracker.");
+      } else if (lower.includes('thank')) {
+        addRiyaMessage("You're welcome, Ramesh! 😊 Happy journey!");
+      } else {
+        addRiyaMessage("I'm still learning. You can ask me about bookings, PNR status, live trains, or just say 'hi'.");
+      }
+    }
+
+    sendChat.addEventListener('click', () => {
+      const msg = chatInput.value.trim();
+      if (msg === '') return;
+      addUserMessage(msg);
+      chatInput.value = '';
+      setTimeout(() => processChat(msg), 300); // small delay
+    });
+    chatInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        sendChat.click();
+      }
+    });
+
+    // ----- Demo functions for search, PNR, live train -----
+    document.getElementById('searchBtn').addEventListener('click', function() {
+      const from = document.getElementById('from').value || 'Mumbai';
+      const to = document.getElementById('to').value || 'Delhi';
+      const date = document.getElementById('date').value || '2026-02-20';
+      const resultsDiv = document.getElementById('searchResults');
+      resultsDiv.innerHTML = `
+        <div class="train-item">
+          <span><i class="fas fa-train"></i> 12951 ${from}-${to} Express</span>
+          <span>06:00 → 22:10 <span class="ai-tag"><i class="fas fa-microchip"></i> 82% confirm</span></span>
+        </div>
+        <div class="train-item">
+          <span><i class="fas fa-train"></i> 12301 ${from} Rajdhani</span>
+          <span>16:20 → 08:35 <span class="ai-tag"><i class="fas fa-cloud-sun"></i> on time</span></span>
+        </div>
+        <div class="train-item">
+          <span><i class="fas fa-train"></i> 22435 ${to} AC Exp</span>
+          <span>23:45 → 13:20 <span class="ai-tag"><i class="fas fa-robot"></i> AI: low rush</span></span>
+        </div>
+      `;
+    });
+
+    document.getElementById('pnrBtn').addEventListener('click', function() {
+      const pnr = document.getElementById('pnrInput').value;
+      const resultDiv = document.getElementById('pnrResult');
+      if (pnr.length === 10) {
+        resultDiv.innerHTML = `
+          <div class="train-item">
+            <span><i class="fas fa-check-circle" style="color:#10b981;"></i> PNR ${pnr} · Confirmed (S8, 42)</span>
+            <span class="ai-tag"><i class="fas fa-chart-line"></i> 98% confirm</span>
+          </div>
+          <div class="train-item">
+            <span><i class="fas fa-clock"></i> Train: 12301 Rajdhani · 20 Feb, 16:20</span>
+            <span class="ai-tag">coach: S8, 42</span>
+          </div>
+        `;
+      } else {
+        resultDiv.innerHTML = `<div class="train-item">Please enter a valid 10-digit PNR.</div>`;
+      }
+    });
+
+    document.getElementById('liveTrainBtn').addEventListener('click', function() {
+      const trainNum = document.getElementById('trainInput').value;
+      const resultDiv = document.getElementById('liveResult');
+      resultDiv.innerHTML = `
+        <div class="train-item">
+          <span><i class="fas fa-train"></i> ${trainNum} Rajdhani</span>
+          <span>📍 passed Kanpur · 22:10 <span class="ai-tag">delay: 12 min</span></span>
+        </div>
+        <div class="train-item">
+          <span><i class="fas fa-map-pin"></i> Next: Etawah (ETA 23:05)</span>
+          <span class="ai-tag">platform 3</span>
+        </div>
+      `;
+    });
+
+    // Some micro-interactions: update greeting based on time
+    const hour = new Date().getHours();
+    const greeting = document.querySelector('.greeting h2');
+    if (hour < 12) greeting.textContent = 'Good morning, Ramesh! 👋';
+    else if (hour < 17) greeting.textContent = 'Good afternoon, Ramesh! 👋';
+    else greeting.textContent = 'Good evening, Ramesh! 👋';
+
+    // Simulate proactive AI in PNR card (on page load, show a tip)
+    setTimeout(() => {
+      addRiyaMessage("I noticed you checked PNR earlier. I'll notify you if anything changes.");
+    }, 2000);
+  })();
+</script>
+</body>
+</html>
